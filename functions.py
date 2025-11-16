@@ -1,6 +1,7 @@
 from datetime import datetime
 
 import database as db
+import pdfprint as pdf
 
 
 def t_type_choice():
@@ -259,12 +260,52 @@ def display_budget():
 
 def print_transaction_history():
     """Print it as PDF"""
-    return
+    conn = db.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM transactions ORDER BY date ASC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        print("No transactions to print!")
+        return
+
+    content = ["<b>Transaction History</b><br><br>"]
+
+    for row in rows:
+        id_, amount, t_type, category, date, desc = row
+        t_type_full = "Income" if t_type == "I" else "Expense"
+        content.append(
+            f"[{id_}] £{amount:.2f} | {t_type_full} | {category} | {date} | {desc}"
+        )
+
+    pdf.generate_pdf("transaction_history.pdf", content)
+
 
 
 def print_monthly_budget():
     """Print it as a PDF"""
-    return
+    conn = db.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("SELECT * FROM budgets ORDER BY date ASC")
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        print("Not budgets to Print!")
+        return
+    content = ["<b>Budget History</b><br><br>"]
+
+    for row in rows:
+        id_, category, t_type, amount, month, year, desc = row
+        t_type_full = "Income" if t_type == "I" else "Expense"
+        content.append(
+            f"[{id_}] {category} | {t_type_full} | £{amount:.2f} | {month}/{year} | {desc}"
+        )
+
+    pdf.generate_pdf("budget_history.pdf", content)
 
 
 def show_main_menu():
