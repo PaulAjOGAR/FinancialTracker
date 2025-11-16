@@ -101,10 +101,51 @@ def show_summary():
     conn = db.get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        ""
-    )
-    print("Coming soon!!!")
+    cursor.execute("""
+        SELECT 
+            b.category,
+            b.t_type,
+            b.amount AS budget_amount,
+            b.month,
+            b.year,
+            IFNULL(SUM(t.amount), 0) AS total_spent
+        FROM budgets b
+        LEFT JOIN transactions t
+            ON b.category = t.category
+            AND b.t_type = t.t_type
+            AND strftime('%Y', t.date) = CAST(b.year AS TEXT)
+            AND strftime('%m', t.date) = printf('%02d', b.month)
+        GROUP BY b.category, b.t_type, b.year, b.month
+        ORDER BY b.year, b.month, b.category
+    """)
+
+    rows = cursor.fetchall()
+    conn.close()
+
+    if not rows:
+        print("\nNo summary available! Add budgets or transactions first.")
+        return
+
+    print("\n========== SUMMARY ==========")
+
+    for row in rows:
+        category, t_type, budget_amount, month, year, total_spent = row
+        remaining = budget_amount - total_spent
+
+        t_type_full = "Income" if t_type == "I" else "Expense"
+
+        print(f"\n📌 {category.upper()} ({t_type_full}) — {month}/{year}")
+        print(f"   Budget:    £{budget_amount:.2f}")
+        print(f"   Spent:     £{total_spent:.2f}")
+        print(f"   Remaining: £{remaining:.2f}")
+
+        # Alerts
+        if total_spent > budget_amount:
+            print("   ⚠️ ALERT: Budget EXCEEDED!")
+        elif total_spent > 0.8 * budget_amount:
+            print("   ⚠️ Warning: Nearing budget limit.")
+
+    print("\n==============================\n")
 
 
 def add_transaction():
@@ -236,7 +277,8 @@ def show_main_menu():
     4. Display Budget
     5. Print Monthly Budget
     6. Print Transaction History
-    7: Clear Tables
+    7. Clear Tables
+    8. Show Summary
     """
     print(menu)
 
@@ -249,7 +291,8 @@ def get_user_choice(user_input):
         4:display_budget,
         5:print_monthly_budget,
         6:print_transaction_history,
-        7:clear_tables
+        7:clear_tables,
+        8:show_summary
     }
 
     if user_input == 0:
