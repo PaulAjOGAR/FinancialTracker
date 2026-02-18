@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}{{ form_title }} — Finance Tracker{% endblock %}
+{% block page_title %}{{ form_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>{{ form_title }}</h2>
+    <p>{{ form_subtitle }}</p>
+</div>
+
+<div style="max-width:600px;">
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">{{ form_title }}</span>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="{{ form_action }}" id="mainForm">
+
+                <div class="form-group">
+                    <label for="amount">Amount (£)</label>
+                    <input type="number" id="amount" name="amount" step="0.01" min="0.01" placeholder="0.00" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Type</label>
+                    <div style="display:flex; gap:12px; margin-top:4px;">
+                        <label class="radio-option" for="type_income"
+                               style="display:flex; align-items:center; gap:8px; cursor:pointer;
+                                      padding:10px 20px; border:1.5px solid var(--border);
+                                      border-radius:8px; font-weight:500; font-size:0.9rem;
+                                      color:var(--text-dark); text-transform:none; letter-spacing:0;
+                                      transition:all 0.2s; flex:1; justify-content:center;">
+                            <input type="radio" id="type_income" name="t_type" value="I" style="width:auto; margin:0;" required>
+                            💰 Income
+                        </label>
+                        <label class="radio-option" for="type_expense"
+                               style="display:flex; align-items:center; gap:8px; cursor:pointer;
+                                      padding:10px 20px; border:1.5px solid var(--border);
+                                      border-radius:8px; font-weight:500; font-size:0.9rem;
+                                      color:var(--text-dark); text-transform:none; letter-spacing:0;
+                                      transition:all 0.2s; flex:1; justify-content:center;">
+                            <input type="radio" id="type_expense" name="t_type" value="E" style="width:auto; margin:0;">
+                            💸 Expense
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="category">Category</label>
+                    <select id="category" name="category" required>
+                        <option value="" disabled selected>Select a category...</option>
+                        {% for num, name in categories.items() %}
+                        <option value="{{ name }}">{{ name | capitalize }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                {% if show_date %}
+                <div class="form-group">
+                    <label>Date</label>
+                    <div class="grid-3" style="gap:8px;">
+                        <input type="number" name="day" placeholder="Day" min="1" max="31" required>
+                        <input type="number" name="month" placeholder="Month" min="1" max="12" required>
+                        <input type="number" name="year" placeholder="Year" min="2000" max="2099" required>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if show_period %}
+                <div class="form-group">
+                    <label>Budget Period</label>
+                    <div class="grid-2" style="gap:8px;">
+                        <input type="number" name="month" placeholder="Month (1-12)" min="1" max="12" required>
+                        <input type="number" name="year" placeholder="Year (YYYY)" min="2000" max="2099" required>
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="form-group">
+                    <label for="desc">Description</label>
+                    <input type="text" id="desc" name="desc" placeholder="e.g. Weekly grocery shop" maxlength="100">
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+                    <button type="submit" class="btn btn-gold" id="submitBtn">{{ submit_label or 'Submit' }}</button>
+                </div>
+
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const radioInputs = document.querySelectorAll('input[type="radio"][name="t_type"]');
+    radioInputs.forEach(radio => {
+        radio.addEventListener('change', () => {
+            document.querySelectorAll('.radio-option').forEach(label => {
+                label.style.borderColor = 'var(--border)';
+                label.style.background  = '';
+                label.style.color       = 'var(--text-dark)';
+            });
+            if (radio.value === 'I') {
+                radio.parentElement.style.borderColor = 'var(--success)';
+                radio.parentElement.style.background  = '#f0fdf4';
+                radio.parentElement.style.color       = 'var(--success)';
+            } else {
+                radio.parentElement.style.borderColor = 'var(--danger)';
+                radio.parentElement.style.background  = '#fff5f5';
+                radio.parentElement.style.color       = 'var(--danger)';
+            }
+        });
+    });
+
+    const amountInput = document.getElementById('amount');
+    amountInput.addEventListener('blur', function() {
+        if (this.value) this.value = parseFloat(this.value).toFixed(2);
+    });
+
+    const today = new Date();
+    const dayInput   = document.querySelector('input[name="day"]');
+    const monthInput = document.querySelector('input[name="month"]');
+    const yearInput  = document.querySelector('input[name="year"]');
+    if (dayInput)   dayInput.value   = today.getDate();
+    if (monthInput) monthInput.value = today.getMonth() + 1;
+    if (yearInput)  yearInput.value  = today.getFullYear();
+
+    document.getElementById('mainForm').addEventListener('submit', function() {
+        const btn = document.getElementById('submitBtn');
+        btn.disabled = true;
+        btn.textContent = 'Saving...';
+        btn.style.opacity = '0.7';
+    });
+</script>
+{% endblock %}

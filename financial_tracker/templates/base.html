@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Finance Tracker{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --navy:       #0f1923;
+            --navy-mid:   #1a2738;
+            --navy-light: #243347;
+            --gold:       #c9a84c;
+            --gold-light: #e8c97a;
+            --cream:      #f5f0e8;
+            --text-dark:  #1a1a2e;
+            --text-mid:   #4a5568;
+            --text-light: #718096;
+            --white:      #ffffff;
+            --success:    #2d6a4f;
+            --danger:     #9b2335;
+            --warning:    #b7791f;
+            --border:     #e2d9cc;
+            --font-heading: 'Playfair Display', Georgia, serif;
+            --font-body:    'DM Sans', 'Helvetica Neue', sans-serif;
+            --space-xs:  4px;
+            --space-sm:  8px;
+            --space-md:  16px;
+            --space-lg:  24px;
+            --space-xl:  32px;
+            --space-2xl: 48px;
+            --space-3xl: 64px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 6px rgba(0,0,0,0.07);
+            --sidebar-width: 240px;
+            --topbar-height: 64px;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html { font-size: 16px; scroll-behavior: smooth; }
+
+        body {
+            font-family: var(--font-body);
+            background-color: var(--cream);
+            color: var(--text-dark);
+            line-height: 1.6;
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--navy);
+            min-height: 100vh;
+            position: fixed;
+            top: 0; left: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 100;
+            box-shadow: 4px 0 20px rgba(0,0,0,0.15);
+        }
+
+        .sidebar-logo {
+            padding: var(--space-xl) var(--space-lg);
+            border-bottom: 1px solid var(--navy-light);
+        }
+
+        .sidebar-logo h1 {
+            font-family: var(--font-heading);
+            color: var(--gold);
+            font-size: 1.4rem;
+            letter-spacing: 0.02em;
+        }
+
+        .sidebar-logo p {
+            color: var(--text-light);
+            font-size: 0.75rem;
+            margin-top: var(--space-xs);
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .sidebar-nav { flex: 1; padding: var(--space-lg) 0; overflow-y: auto; }
+
+        .nav-section-label {
+            color: var(--text-light);
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: var(--space-md) var(--space-lg) var(--space-xs);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            padding: 10px var(--space-lg);
+            color: rgba(255,255,255,0.65);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover { color: var(--white); background: var(--navy-light); border-left-color: var(--gold); }
+        .nav-link.active { color: var(--gold); background: var(--navy-mid); border-left-color: var(--gold); }
+
+        .nav-icon { font-size: 1rem; width: 20px; text-align: center; flex-shrink: 0; }
+
+        .sidebar-footer { padding: var(--space-lg); border-top: 1px solid var(--navy-light); }
+        .sidebar-footer p { color: var(--text-light); font-size: 0.75rem; text-align: center; }
+
+        .main-wrapper { margin-left: var(--sidebar-width); flex: 1; display: flex; flex-direction: column; }
+
+        .topbar {
+            height: var(--topbar-height);
+            background: var(--white);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 var(--space-xl);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .topbar-title { font-family: var(--font-heading); font-size: 1.4rem; color: var(--navy); }
+        .topbar-date { color: var(--text-mid); font-size: 0.85rem; }
+
+        .main-content { flex: 1; padding: var(--space-2xl) var(--space-xl); max-width: 1200px; }
+
+        .flash-container { margin-bottom: var(--space-lg); }
+
+        .flash {
+            padding: var(--space-md) var(--space-lg);
+            border-radius: var(--radius-md);
+            font-size: 0.9rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: var(--space-sm);
+            margin-bottom: var(--space-sm);
+            border-left: 4px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .flash-success { background: #f0fdf4; color: var(--success); border-left-color: var(--success); }
+        .flash-error   { background: #fff5f5; color: var(--danger);  border-left-color: var(--danger); }
+        .flash-warning { background: #fffbeb; color: var(--warning); border-left-color: var(--warning); }
+
+        .card { background: var(--white); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); border: 1px solid var(--border); overflow: hidden; }
+
+        .card-header {
+            padding: var(--space-lg) var(--space-xl);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .card-title { font-family: var(--font-heading); font-size: 1.1rem; color: var(--navy); }
+        .card-body { padding: var(--space-xl); }
+
+        .form-group { margin-bottom: var(--space-lg); }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-mid);
+            margin-bottom: var(--space-xs);
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+        }
+
+        input, select, textarea {
+            width: 100%;
+            padding: 10px var(--space-md);
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.95rem;
+            color: var(--text-dark);
+            background: var(--white);
+            transition: border-color 0.2s, box-shadow 0.2s;
+            outline: none;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            border-color: var(--gold);
+            box-shadow: 0 0 0 3px rgba(201,168,76,0.15);
+        }
+
+        input::placeholder { color: var(--text-light); }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-xs);
+            padding: 10px var(--space-xl);
+            border-radius: var(--radius-md);
+            font-family: var(--font-body);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+            text-decoration: none;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-primary { background: var(--navy); color: var(--white); }
+        .btn-primary:hover { background: var(--navy-mid); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-gold { background: var(--gold); color: var(--navy); }
+        .btn-gold:hover { background: var(--gold-light); transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-danger { background: var(--danger); color: var(--white); }
+        .btn-danger:hover { background: #7d1c2a; transform: translateY(-1px); }
+        .btn-outline { background: transparent; color: var(--navy); border: 1.5px solid var(--border); }
+        .btn-outline:hover { border-color: var(--navy); background: rgba(15,25,35,0.04); }
+
+        .table-wrapper { overflow-x: auto; }
+
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+
+        thead th {
+            background: var(--navy);
+            color: rgba(255,255,255,0.75);
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            padding: var(--space-md) var(--space-lg);
+            text-align: left;
+        }
+
+        tbody tr { border-bottom: 1px solid var(--border); transition: background 0.15s; }
+        tbody tr:hover { background: rgba(201,168,76,0.04); }
+        tbody td { padding: var(--space-md) var(--space-lg); color: var(--text-dark); }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+        }
+
+        .badge-income  { background: #dcfce7; color: var(--success); }
+        .badge-expense { background: #fee2e2; color: var(--danger); }
+        .badge-warning { background: #fef3c7; color: var(--warning); }
+        .badge-danger  { background: #fee2e2; color: var(--danger); }
+
+        .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-lg); }
+        .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-lg); }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: var(--radius-lg);
+            padding: var(--space-xl);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--gold);
+        }
+
+        .stat-label { font-size: 0.75rem; font-weight: 600; color: var(--text-mid); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: var(--space-sm); }
+        .stat-value { font-family: var(--font-heading); font-size: 1.8rem; color: var(--navy); line-height: 1; }
+        .stat-value.positive { color: var(--success); }
+        .stat-value.negative { color: var(--danger); }
+
+        .empty-state { text-align: center; padding: var(--space-3xl) var(--space-xl); color: var(--text-light); }
+        .empty-state-icon { font-size: 2.5rem; margin-bottom: var(--space-md); opacity: 0.5; }
+        .empty-state p { font-size: 0.95rem; }
+
+        .page-header { margin-bottom: var(--space-xl); }
+        .page-header h2 { font-family: var(--font-heading); font-size: 1.8rem; color: var(--navy); margin-bottom: var(--space-xs); }
+        .page-header p { color: var(--text-mid); font-size: 0.95rem; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(-8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+
+        .fade-in { animation: fadeIn 0.4s ease; }
+
+        .progress-track { height: 6px; background: var(--border); border-radius: 999px; overflow: hidden; margin-top: var(--space-xs); }
+        .progress-fill { height: 100%; border-radius: 999px; background: var(--gold); transition: width 0.6s ease; }
+        .progress-fill.over  { background: var(--danger); }
+        .progress-fill.near  { background: var(--warning); }
+        .progress-fill.good  { background: var(--success); }
+
+        @media (max-width: 768px) {
+            .sidebar { transform: translateX(-100%); transition: transform 0.3s ease; }
+            .sidebar.open { transform: translateX(0); }
+            .main-wrapper { margin-left: 0; }
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+
+<body>
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-logo">
+            <img alt="FinanceTracker"
+                 src="{{ url_for('static', filename='logo.svg') }}" style="width:160px;">
+        </div>
+        <nav class="sidebar-nav">
+            <p class="nav-section-label">Overview</p>
+            <a href="{{ url_for('index') }}" class="nav-link {{ 'active' if request.endpoint == 'index' }}">
+                <span class="nav-icon">📊</span><span>Dashboard</span>
+            </a>
+            <a href="{{ url_for('summary') }}" class="nav-link {{ 'active' if request.endpoint == 'summary' }}">
+                <span class="nav-icon">📈</span><span>Summary</span>
+            </a>
+            <p class="nav-section-label">Manage</p>
+            <a href="{{ url_for('add_transaction') }}" class="nav-link {{ 'active' if request.endpoint == 'add_transaction' }}">
+                <span class="nav-icon">➕</span><span>Add Transaction</span>
+            </a>
+            <a href="{{ url_for('create_budget') }}" class="nav-link {{ 'active' if request.endpoint == 'create_budget' }}">
+                <span class="nav-icon">🎯</span><span>Create Budget</span>
+            </a>
+            <p class="nav-section-label">History</p>
+            <a href="{{ url_for('transactions') }}" class="nav-link {{ 'active' if request.endpoint == 'transactions' }}">
+                <span class="nav-icon">💳</span><span>Transactions</span>
+            </a>
+            <a href="{{ url_for('budgets') }}" class="nav-link {{ 'active' if request.endpoint == 'budgets' }}">
+                <span class="nav-icon">📋</span><span>Budgets</span>
+            </a>
+            <p class="nav-section-label">Reports</p>
+            <a href="{{ url_for('print_transactions') }}" class="nav-link {{ 'active' if request.endpoint == 'print_transactions' }}">
+                <span class="nav-icon">🖨️</span><span>Print Transactions</span>
+            </a>
+            <a href="{{ url_for('print_budget') }}" class="nav-link {{ 'active' if request.endpoint == 'print_budget' }}">
+                <span class="nav-icon">📄</span><span>Print Budgets</span>
+            </a>
+            <p class="nav-section-label">Settings</p>
+            <a href="{{ url_for('clear') }}" class="nav-link {{ 'active' if request.endpoint == 'clear' }}">
+                <span class="nav-icon">🗑️</span><span>Clear Data</span>
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+            <p>Finance Tracker v1.0</p>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="topbar">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button id="menuToggle" style="display:none; background:none; border:none; cursor:pointer; font-size:1.3rem;">☰</button>
+                <span class="topbar-title">{% block page_title %}Finance Tracker{% endblock %}</span>
+            </div>
+            <span class="topbar-date" id="topbarDate"></span>
+        </header>
+
+        <main class="main-content fade-in">
+            {% with messages = get_flashed_messages(with_categories=True) %}
+                {% if messages %}
+                <div class="flash-container">
+                    {% for category, message in messages %}
+                    <div class="flash flash-{{ category }}">
+                        <span>{% if category == 'success' %}✓{% elif category == 'error' %}✕{% else %}⚠{% endif %}</span>
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <script>
+        document.getElementById('topbarDate').textContent = new Date().toLocaleDateString('en-GB', {
+            weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
+        });
+
+        const menuToggle = document.getElementById('menuToggle');
+        const sidebar = document.getElementById('sidebar');
+
+        if (window.innerWidth <= 768) menuToggle.style.display = 'block';
+        menuToggle.addEventListener('click', () => sidebar.classList.toggle('open'));
+        document.addEventListener('click', (e) => {
+            if (!sidebar.contains(e.target) && !menuToggle.contains(e.target))
+                sidebar.classList.remove('open');
+        });
+
+        setTimeout(() => {
+            document.querySelectorAll('.flash').forEach(f => {
+                f.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+                f.style.opacity = '0';
+                f.style.transform = 'translateY(-8px)';
+                setTimeout(() => f.remove(), 500);
+            });
+        }, 5000);
+
+        window.addEventListener('load', () => {
+            document.querySelectorAll('.progress-fill').forEach(bar => {
+                const target = bar.getAttribute('data-width');
+                if (target) bar.style.width = target + '%';
+            });
+        });
+
+        document.querySelectorAll('tbody tr').forEach(row => {
+            row.addEventListener('click', function() {
+                this.style.background = 'rgba(201,168,76,0.1)';
+                setTimeout(() => { this.style.background = ''; }, 600);
+            });
+        });
+    </script>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

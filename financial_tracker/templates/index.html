@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard — Finance Tracker{% endblock %}
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Good to see you 👋</h2>
+    <p>Here's a quick overview of your finances.</p>
+</div>
+
+<div class="grid-3" style="margin-bottom: 32px;">
+    <div class="stat-card">
+        <p class="stat-label">Total Income</p>
+        <p class="stat-value positive">£{{ "%.2f"|format(total_income or 0) }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Total Expenses</p>
+        <p class="stat-value negative">£{{ "%.2f"|format(total_expenses or 0) }}</p>
+    </div>
+    <div class="stat-card">
+        <p class="stat-label">Net Balance</p>
+        <p class="stat-value {{ 'positive' if net >= 0 else 'negative' }}">£{{ "%.2f"|format(net or 0) }}</p>
+    </div>
+</div>
+
+<div class="page-header">
+    <h2>Quick Actions</h2>
+</div>
+
+<div class="grid-2">
+    <a href="{{ url_for('add_transaction') }}" class="card"
+       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
+       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
+       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+        <div style="font-size:2rem; margin-bottom:12px;">➕</div>
+        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">Add Transaction</h3>
+        <p style="color:var(--text-mid); font-size:0.9rem;">Record a new income or expense</p>
+    </a>
+    <a href="{{ url_for('create_budget') }}" class="card"
+       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
+       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
+       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+        <div style="font-size:2rem; margin-bottom:12px;">🎯</div>
+        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">Create Budget</h3>
+        <p style="color:var(--text-mid); font-size:0.9rem;">Set a spending target for a category</p>
+    </a>
+    <a href="{{ url_for('transactions') }}" class="card"
+       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
+       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
+       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+        <div style="font-size:2rem; margin-bottom:12px;">💳</div>
+        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">View Transactions</h3>
+        <p style="color:var(--text-mid); font-size:0.9rem;">Browse your full transaction history</p>
+    </a>
+    <a href="{{ url_for('summary') }}" class="card"
+       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
+       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
+       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+        <div style="font-size:2rem; margin-bottom:12px;">📈</div>
+        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">View Summary</h3>
+        <p style="color:var(--text-mid); font-size:0.9rem;">See budget vs spending breakdown</p>
+    </a>
+</div>
+{% endblock %}

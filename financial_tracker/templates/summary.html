@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Summary — Finance Tracker{% endblock %}
+{% block page_title %}Summary{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h2>Budget Summary</h2>
+    <p>Compare your budgets against actual spending.</p>
+</div>
+
+{% if rows %}
+    {% for row in rows %}
+    <div class="card" style="margin-bottom:16px;">
+        <div class="card-body">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+                <div>
+                    <h3 style="font-family:var(--font-heading); font-size:1.1rem; color:var(--navy);">
+                        {{ row.category | capitalize }} — {{ row.month }}/{{ row.year }}
+                    </h3>
+                    <span style="color:var(--text-mid); font-size:0.85rem;">{{ row.type }}</span>
+                </div>
+                {% if row.alert == 'danger' %}
+                    <span class="badge badge-danger">⚠️ Over Budget</span>
+                {% elif row.alert == 'warning' %}
+                    <span class="badge badge-warning">⚠️ Nearing Limit</span>
+                {% else %}
+                    <span class="badge" style="background:#dcfce7; color:var(--success);">✓ On Track</span>
+                {% endif %}
+            </div>
+
+            <div class="grid-3" style="margin-bottom:16px;">
+                <div>
+                    <p style="font-size:0.75rem; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Budget</p>
+                    <p style="font-size:1.2rem; font-weight:600; color:var(--navy);">{{ row.budget }}</p>
+                </div>
+                <div>
+                    <p style="font-size:0.75rem; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Spent</p>
+                    <p style="font-size:1.2rem; font-weight:600; color:{{ 'var(--danger)' if row.alert == 'danger' else 'var(--text-dark)' }};">{{ row.spent }}</p>
+                </div>
+                <div>
+                    <p style="font-size:0.75rem; color:var(--text-mid); text-transform:uppercase; letter-spacing:0.08em; font-weight:600; margin-bottom:4px;">Remaining</p>
+                    <p style="font-size:1.2rem; font-weight:600; color:{{ 'var(--success)' if row.remaining[0] != '-' else 'var(--danger)' }};">{{ row.remaining }}</p>
+                </div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+                    <span style="font-size:0.8rem; color:var(--text-mid);">Budget usage</span>
+                    <span style="font-size:0.8rem; font-weight:600; color:var(--text-dark);" id="pct-{{ loop.index }}"></span>
+                </div>
+                <div class="progress-track">
+                    <div class="progress-fill {{ 'over' if row.alert == 'danger' else ('near' if row.alert == 'warning' else 'good') }}"
+                         data-budget="{{ row.budget | replace('£','') }}"
+                         data-spent="{{ row.spent | replace('£','') }}"
+                         data-index="{{ loop.index }}"
+                         style="width:0%">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+
+{% else %}
+    <div class="card">
+        <div class="card-body">
+            <div class="empty-state">
+                <div class="empty-state-icon">📊</div>
+                <p>No summary available yet. Add budgets and transactions first.</p>
+                <div style="margin-top:16px; display:flex; gap:8px; justify-content:center;">
+                    <a href="{{ url_for('create_budget') }}" class="btn btn-gold">Create Budget</a>
+                    <a href="{{ url_for('add_transaction') }}" class="btn btn-outline">Add Transaction</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    window.addEventListener('load', () => {
+        document.querySelectorAll('.progress-fill').forEach(bar => {
+            const budget = parseFloat(bar.getAttribute('data-budget')) || 0;
+            const spent  = parseFloat(bar.getAttribute('data-spent'))  || 0;
+            const index  = bar.getAttribute('data-index');
+            const pct    = budget > 0 ? (spent / budget) * 100 : 0;
+            bar.style.width = Math.min(pct, 100) + '%';
+            const label = document.getElementById('pct-' + index);
+            if (label) label.textContent = pct.toFixed(1) + '%';
+        });
+    });
+</script>
+{% endblock %}

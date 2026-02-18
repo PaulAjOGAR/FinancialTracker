@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} — Finance Tracker{% endblock %}
+{% block page_title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+    <div>
+        <h2>{{ page_title }}</h2>
+        <p>{{ page_subtitle }}</p>
+    </div>
+    <div style="display:flex; gap:8px;">
+        {% if print_url %}
+        <a href="{{ print_url }}" class="btn btn-outline">🖨️ Print PDF</a>
+        {% endif %}
+        <a href="{{ add_url }}" class="btn btn-gold">➕ Add New</a>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:16px;">
+    <div class="card-body" style="padding:16px;">
+        <div class="grid-2" style="gap:12px; align-items:end;">
+            <div>
+                <label for="searchInput">Search</label>
+                <input type="text" id="searchInput" placeholder="Search description, category...">
+            </div>
+            <div>
+                <label for="filterType">Filter by Type</label>
+                <select id="filterType">
+                    <option value="">All</option>
+                    <option value="Income">Income</option>
+                    <option value="Expense">Expense</option>
+                </select>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <span class="card-title">{{ page_title }}</span>
+        <span style="color:var(--text-mid); font-size:0.85rem;" id="rowCount"></span>
+    </div>
+    <div class="table-wrapper">
+        <table id="dataTable">
+            <thead>
+                <tr>
+                    {% for col in columns %}
+                    <th>{{ col }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                {% if rows %}
+                    {% for row in rows %}
+                    <tr>
+                        <td style="color:var(--text-light); font-size:0.8rem;">{{ row.id }}</td>
+                        <td style="font-weight:600;">{{ row.amount }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-income' if row.type == 'Income' else 'badge-expense' }}">
+                                {{ row.type }}
+                            </span>
+                        </td>
+                        <td>{{ row.category | capitalize }}</td>
+                        {% if row.date is defined %}
+                        <td style="color:var(--text-mid);">{{ row.date }}</td>
+                        {% endif %}
+                        {% if row.month is defined %}
+                        <td style="color:var(--text-mid);">{{ row.month }}/{{ row.year }}</td>
+                        {% endif %}
+                        <td style="color:var(--text-mid); font-size:0.9rem;">{{ row.desc }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="{{ columns|length }}">
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <p>No records found. Add some data to get started.</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const searchInput = document.getElementById('searchInput');
+    const filterType  = document.getElementById('filterType');
+    const tableBody   = document.getElementById('tableBody');
+    const rowCount    = document.getElementById('rowCount');
+
+    function filterTable() {
+        const searchTerm = searchInput.value.toLowerCase();
+        const typeFilter = filterType.value;
+        const rows = tableBody.querySelectorAll('tr');
+        let visibleCount = 0;
+
+        rows.forEach(row => {
+            const text = row.textContent.toLowerCase();
+            const matchesSearch = text.includes(searchTerm);
+            const matchesType   = typeFilter === '' || text.includes(typeFilter.toLowerCase());
+            if (matchesSearch && matchesType) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        rowCount.textContent = `Showing ${visibleCount} entr${visibleCount === 1 ? 'y' : 'ies'}`;
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    filterType.addEventListener('change', filterTable);
+    filterTable();
+</script>
+{% endblock %}
