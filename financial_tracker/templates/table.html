@@ -4,7 +4,7 @@
 {% block page_title %}{{ page_title }}{% endblock %}
 
 {% block content %}
-<div class="page-header" style="display:flex; justify-content:space-between; align-items:flex-start;">
+<div class="page-header fade-up" style="display:flex; justify-content:space-between; align-items:flex-start;">
     <div>
         <h2>{{ page_title }}</h2>
         <p>{{ page_subtitle }}</p>
@@ -17,12 +17,12 @@
     </div>
 </div>
 
-<div class="card" style="margin-bottom:16px;">
+<div class="card fade-up delay-1" style="margin-bottom:16px;">
     <div class="card-body" style="padding:16px;">
         <div class="grid-2" style="gap:12px; align-items:end;">
             <div>
                 <label for="searchInput">Search</label>
-                <input type="text" id="searchInput" placeholder="Search description, category...">
+                <input type="text" id="searchInput" placeholder="Search anything...">
             </div>
             <div>
                 <label for="filterType">Filter by Type</label>
@@ -36,10 +36,10 @@
     </div>
 </div>
 
-<div class="card">
+<div class="card fade-up delay-2">
     <div class="card-header">
         <span class="card-title">{{ page_title }}</span>
-        <span style="color:var(--text-mid); font-size:0.85rem;" id="rowCount"></span>
+        <span style="color:var(--text-light); font-size:0.82rem;" id="rowCount"></span>
     </div>
     <div class="table-wrapper">
         <table id="dataTable">
@@ -53,7 +53,7 @@
             <tbody id="tableBody">
                 {% if rows %}
                     {% for row in rows %}
-                    <tr>
+                    <tr style="animation: fadeUp 0.3s ease both; animation-delay: {{ loop.index0 * 0.03 }}s;">
                         <td style="color:var(--text-light); font-size:0.8rem;">{{ row.id }}</td>
                         <td style="font-weight:600;">{{ row.amount }}</td>
                         <td>
@@ -68,7 +68,7 @@
                         {% if row.month is defined %}
                         <td style="color:var(--text-mid);">{{ row.month }}/{{ row.year }}</td>
                         {% endif %}
-                        <td style="color:var(--text-mid); font-size:0.9rem;">{{ row.desc }}</td>
+                        <td style="color:var(--text-mid); font-size:0.88rem;">{{ row.desc }}</td>
                     </tr>
                     {% endfor %}
                 {% else %}
@@ -95,24 +95,21 @@
     const rowCount    = document.getElementById('rowCount');
 
     function filterTable() {
-        const searchTerm = searchInput.value.toLowerCase();
-        const typeFilter = filterType.value;
+        const term = searchInput.value.toLowerCase();
+        const type = filterType.value;
         const rows = tableBody.querySelectorAll('tr');
-        let visibleCount = 0;
+        let count  = 0;
 
         rows.forEach(row => {
-            const text = row.textContent.toLowerCase();
-            const matchesSearch = text.includes(searchTerm);
-            const matchesType   = typeFilter === '' || text.includes(typeFilter.toLowerCase());
-            if (matchesSearch && matchesType) {
-                row.style.display = '';
-                visibleCount++;
-            } else {
-                row.style.display = 'none';
-            }
+            const text         = row.textContent.toLowerCase();
+            const matchSearch  = text.includes(term);
+            const matchType    = type === '' || text.includes(type.toLowerCase());
+            const visible      = matchSearch && matchType;
+            row.style.display  = visible ? '' : 'none';
+            if (visible) count++;
         });
 
-        rowCount.textContent = `Showing ${visibleCount} entr${visibleCount === 1 ? 'y' : 'ies'}`;
+        rowCount.textContent = `${count} record${count !== 1 ? 's' : ''}`;
     }
 
     searchInput.addEventListener('input', filterTable);

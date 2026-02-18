@@ -4,15 +4,14 @@
 {% block page_title %}Clear Data{% endblock %}
 
 {% block content %}
-<div style="max-width:500px; margin:0 auto; text-align:center;">
-    <div class="card">
+<div style="max-width:480px; margin:0 auto; text-align:center;">
+    <div class="card fade-up">
         <div class="card-body" style="padding:48px 32px;">
-            <div style="font-size:3rem; margin-bottom:16px;">⚠️</div>
-            <h2 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:12px;">Clear All Data?</h2>
+            <div style="font-size:3.5rem; margin-bottom:16px; animation: fadeUp 0.4s ease;">⚠️</div>
+            <h2 style="font-family:var(--font-heading); color:var(--text-dark); margin-bottom:12px;">Clear All Data?</h2>
             <p style="color:var(--text-mid); line-height:1.7; margin-bottom:32px;">
-                This will permanently delete <strong>all transactions and budgets</strong>
-                from the database. IDs will be reset. This action
-                <strong style="color:var(--danger);">cannot be undone</strong>.
+                This will permanently delete <strong>all transactions and budgets</strong>.
+                IDs will be reset. This action <strong style="color:var(--danger);">cannot be undone</strong>.
             </p>
             <div style="display:flex; gap:12px; justify-content:center;">
                 <a href="{{ url_for('index') }}" class="btn btn-outline">← Cancel</a>

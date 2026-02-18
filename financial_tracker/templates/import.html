@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Import Transactions — Finance Tracker{% endblock %}
+{% block page_title %}Import Transactions{% endblock %}
+
+{% block content %}
+<div class="page-header fade-up">
+    <h2>Import Transactions</h2>
+    <p>Upload a file to bulk-import transactions. Supported: CSV, Excel, JSON, TXT, PDF.</p>
+</div>
+
+{% if not preview %}
+<div style="max-width:600px;">
+    <div class="card fade-up delay-1">
+        <div class="card-header">
+            <span class="card-title">Upload File</span>
+        </div>
+        <div class="card-body">
+
+            <form method="POST" action="{{ url_for('import_transactions') }}"
+                  enctype="multipart/form-data" id="uploadForm">
+
+                <div class="form-group">
+                    <label>File</label>
+                    <div id="dropZone" style="
+                        border: 2px dashed var(--border);
+                        border-radius: var(--radius-lg);
+                        padding: 40px 24px;
+                        text-align: center;
+                        cursor: pointer;
+                        transition: var(--transition);
+                        background: var(--bg);
+                    ">
+                        <div style="font-size:2.5rem; margin-bottom:12px; opacity:0.5;">📂</div>
+                        <p style="color:var(--text-mid); margin-bottom:8px; font-weight:500;">
+                            Drag & drop your file here
+                        </p>
+                        <p style="color:var(--text-light); font-size:0.82rem; margin-bottom:16px;">
+                            CSV, Excel (.xlsx), JSON, TXT, PDF
+                        </p>
+                        <label for="fileInput" class="btn btn-outline" style="cursor:pointer;">
+                            Browse Files
+                        </label>
+                        <input type="file" id="fileInput" name="file"
+                               accept=".csv,.xlsx,.xls,.json,.txt,.pdf"
+                               style="display:none;" required>
+                        <p id="fileName" style="margin-top:12px; color:var(--gold); font-size:0.88rem; font-weight:500;"></p>
+                    </div>
+                </div>
+
+                <div class="card" style="background:var(--bg); box-shadow:none; margin-bottom:var(--space-lg);">
+                    <div class="card-body" style="padding:16px;">
+                        <p style="font-size:0.82rem; color:var(--text-mid); margin-bottom:8px; font-weight:600;">
+                            Expected column headers (any order):
+                        </p>
+                        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+                            {% for col in ['amount', 'type', 'category', 'date', 'description'] %}
+                            <span class="badge" style="background:var(--navy); color:var(--gold);">{{ col }}</span>
+                            {% endfor %}
+                        </div>
+                        <p style="font-size:0.78rem; color:var(--text-light); margin-top:10px;">
+                            Column names are flexible — "value", "sum", "cost" all map to "amount" etc.
+                            Missing columns will use sensible defaults.
+                        </p>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; justify-content:flex-end;">
+                    <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
+                    <button type="submit" class="btn btn-gold" id="uploadBtn">
+                        <span id="uploadBtnText">Preview Import</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% else %}
+<div class="fade-up">
+
+    <div class="grid-3" style="margin-bottom:24px;">
+        <div class="stat-card">
+            <p class="stat-label">Total Rows</p>
+            <p class="stat-value">{{ preview.total }}</p>
+        </div>
+        <div class="stat-card positive-card">
+            <p class="stat-label">Valid</p>
+            <p class="stat-value positive">{{ preview.valid }}</p>
+        </div>
+        <div class="stat-card {{ 'negative-card' if preview.invalid > 0 else '' }}">
+            <p class="stat-label">Warnings</p>
+            <p class="stat-value {{ 'negative' if preview.invalid > 0 else '' }}">{{ preview.invalid }}</p>
+        </div>
+    </div>
+
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card-header">
+            <span class="card-title">Preview — {{ preview.total }} rows from {{ filename }}</span>
+        </div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Amount</th>
+                        <th>Type</th>
+                        <th>Category</th>
+                        <th>Date</th>
+                        <th>Description</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in preview.transactions %}
+                    <tr style="opacity: {{ '0.5' if t.error else '1' }};">
+                        <td style="color:var(--text-light); font-size:0.8rem;">{{ loop.index }}</td>
+                        <td style="font-weight:600;">
+                            {% if t.amount %}£{{ "%.2f"|format(t.amount) }}{% else %}<span style="color:var(--danger);">—</span>{% endif %}
+                        </td>
+                        <td>
+                            {% if t.t_type %}
+                            <span class="badge {{ 'badge-income' if t.t_type == 'I' else 'badge-expense' }}">
+                                {{ 'Income' if t.t_type == 'I' else 'Expense' }}
+                            </span>
+                            {% else %}
+                            <span class="badge" style="background:#fee2e2; color:#991b1b;">Unknown</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ t.category | capitalize }}</td>
+                        <td style="color:var(--text-mid); font-size:0.85rem;">{{ t.date }}</td>
+                        <td style="color:var(--text-mid); font-size:0.85rem; max-width:200px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ t.description or '—' }}
+                        </td>
+                        <td>
+                            {% if t.error %}
+                            <span class="badge badge-warning" title="{{ t.error }}">⚠ Warning</span>
+                            {% else %}
+                            <span class="badge badge-ok">✓ OK</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div style="display:flex; gap:12px; justify-content:flex-end; align-items:center;">
+        <a href="{{ url_for('import_transactions') }}" class="btn btn-outline">← Upload Different File</a>
+        {% if preview.valid > 0 %}
+        <form method="POST" action="{{ url_for('import_confirm') }}">
+            <button type="submit" class="btn btn-gold">
+                ✓ Import {{ preview.valid }} Valid Transaction{{ 's' if preview.valid != 1 else '' }}
+            </button>
+        </form>
+        {% endif %}
+    </div>
+
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const dropZone  = document.getElementById('dropZone');
+    const fileInput = document.getElementById('fileInput');
+    const fileName  = document.getElementById('fileName');
+
+    if (dropZone) {
+        fileInput.addEventListener('change', () => {
+            if (fileInput.files[0]) {
+                fileName.textContent = '📄 ' + fileInput.files[0].name;
+                dropZone.style.borderColor = 'var(--gold)';
+                dropZone.style.background  = 'rgba(201,168,76,0.04)';
+            }
+        });
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = 'var(--gold)';
+            dropZone.style.background  = 'rgba(201,168,76,0.06)';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = 'var(--border)';
+            dropZone.style.background  = 'var(--bg)';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const dt = new DataTransfer();
+                dt.items.add(file);
+                fileInput.files = dt.files;
+                fileName.textContent = '📄 ' + file.name;
+                dropZone.style.borderColor = 'var(--gold)';
+            }
+        });
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        document.getElementById('uploadForm').addEventListener('submit', () => {
+            document.getElementById('uploadBtnText').textContent = 'Parsing...';
+            document.getElementById('uploadBtn').disabled = true;
+        });
+    }
+</script>
+{% endblock %}

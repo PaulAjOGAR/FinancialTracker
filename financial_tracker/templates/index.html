@@ -4,62 +4,227 @@
 {% block page_title %}Dashboard{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header fade-up">
     <h2>Good to see you 👋</h2>
-    <p>Here's a quick overview of your finances.</p>
+    <p>Here's your financial overview at a glance.</p>
 </div>
 
-<div class="grid-3" style="margin-bottom: 32px;">
-    <div class="stat-card">
+<div class="grid-4" style="margin-bottom:32px;">
+    <div class="stat-card positive-card fade-up delay-1">
+        <span class="stat-icon">💰</span>
         <p class="stat-label">Total Income</p>
-        <p class="stat-value positive">£{{ "%.2f"|format(total_income or 0) }}</p>
+        <p class="stat-value positive" data-counter="{{ total_income or 0 }}" data-prefix="£">£{{ "%.2f"|format(total_income or 0) }}</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card negative-card fade-up delay-2">
+        <span class="stat-icon">💸</span>
         <p class="stat-label">Total Expenses</p>
-        <p class="stat-value negative">£{{ "%.2f"|format(total_expenses or 0) }}</p>
+        <p class="stat-value negative" data-counter="{{ total_expenses or 0 }}" data-prefix="£">£{{ "%.2f"|format(total_expenses or 0) }}</p>
     </div>
-    <div class="stat-card">
+    <div class="stat-card fade-up delay-3">
+        <span class="stat-icon">⚖️</span>
         <p class="stat-label">Net Balance</p>
-        <p class="stat-value {{ 'positive' if net >= 0 else 'negative' }}">£{{ "%.2f"|format(net or 0) }}</p>
+        <p class="stat-value {{ 'positive' if (net or 0) >= 0 else 'negative' }}"
+           data-counter="{{ net or 0 }}" data-prefix="£">£{{ "%.2f"|format(net or 0) }}</p>
+    </div>
+    <div class="stat-card fade-up delay-4">
+        <span class="stat-icon">📋</span>
+        <p>Transactions</p>
+        <p class="stat-value" data-counter="{{ transaction_count or 0 }}" data-prefix="">{{ transaction_count or 0 }}</p>
     </div>
 </div>
 
-<div class="page-header">
+<div class="grid-2" style="margin-bottom:32px;">
+    <div class="card fade-up delay-1">
+        <div class="card-header">
+            <span class="card-title">Spending by Category</span>
+        </div>
+        <div class="card-body" style="display:flex; justify-content:center; align-items:center; min-height:220px;">
+            {% if category_data %}
+            <canvas id="donutChart" width="220" height="220"></canvas>
+            {% else %}
+            <div class="empty-state"><div class="empty-state-icon">📊</div><p>No expense data yet</p></div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card fade-up delay-2">
+        <div class="card-header">
+            <span class="card-title">Income vs Expenses</span>
+        </div>
+        <div class="card-body" style="min-height:220px;">
+            {% if monthly_data %}
+            <canvas id="barChart" height="200"></canvas>
+            {% else %}
+            <div class="empty-state"><div class="empty-state-icon">📈</div><p>No monthly data yet</p></div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<div class="card fade-up" style="margin-bottom:32px;">
+    <div class="card-header">
+        <span class="card-title">Spending Over Time</span>
+    </div>
+    <div class="card-body">
+        {% if timeline_data %}
+        <canvas id="lineChart" height="100"></canvas>
+        {% else %}
+        <div class="empty-state"><div class="empty-state-icon">📉</div><p>No timeline data yet</p></div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="page-header" style="margin-top:8px;">
     <h2>Quick Actions</h2>
 </div>
 
 <div class="grid-2">
-    <a href="{{ url_for('add_transaction') }}" class="card"
-       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
-       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
-       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <a href="{{ url_for('add_transaction') }}" class="card card-hover"
+       style="text-decoration:none; display:block; padding:24px;">
         <div style="font-size:2rem; margin-bottom:12px;">➕</div>
-        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">Add Transaction</h3>
+        <h3 style="font-family:var(--font-heading); color:var(--text-dark); margin-bottom:4px;">Add Transaction</h3>
         <p style="color:var(--text-mid); font-size:0.9rem;">Record a new income or expense</p>
     </a>
-    <a href="{{ url_for('create_budget') }}" class="card"
-       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
-       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
-       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <a href="{{ url_for('create_budget') }}" class="card card-hover"
+       style="text-decoration:none; display:block; padding:24px;">
         <div style="font-size:2rem; margin-bottom:12px;">🎯</div>
-        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">Create Budget</h3>
+        <h3 style="font-family:var(--font-heading); color:var(--text-dark); margin-bottom:4px;">Create Budget</h3>
         <p style="color:var(--text-mid); font-size:0.9rem;">Set a spending target for a category</p>
     </a>
-    <a href="{{ url_for('transactions') }}" class="card"
-       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
-       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
-       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <a href="{{ url_for('transactions') }}" class="card card-hover"
+       style="text-decoration:none; display:block; padding:24px;">
         <div style="font-size:2rem; margin-bottom:12px;">💳</div>
-        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">View Transactions</h3>
+        <h3 style="font-family:var(--font-heading); color:var(--text-dark); margin-bottom:4px;">View Transactions</h3>
         <p style="color:var(--text-mid); font-size:0.9rem;">Browse your full transaction history</p>
     </a>
-    <a href="{{ url_for('summary') }}" class="card"
-       style="text-decoration:none; display:block; padding:24px; transition: transform 0.2s, box-shadow 0.2s;"
-       onmouseover="this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(0,0,0,0.12)'"
-       onmouseout="this.style.transform=''; this.style.boxShadow=''">
+    <a href="{{ url_for('summary') }}" class="card card-hover"
+       style="text-decoration:none; display:block; padding:24px;">
         <div style="font-size:2rem; margin-bottom:12px;">📈</div>
-        <h3 style="font-family:var(--font-heading); color:var(--navy); margin-bottom:4px;">View Summary</h3>
+        <h3 style="font-family:var(--font-heading); color:var(--text-dark); margin-bottom:4px;">View Summary</h3>
         <p style="color:var(--text-mid); font-size:0.9rem;">See budget vs spending breakdown</p>
     </a>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const textColor = isDark ? '#94a3b8' : '#4a5568';
+    const gridColor = isDark ? '#2d3748' : '#e2d9cc';
+
+    Chart.defaults.font.family = "'DM Sans', sans-serif";
+    Chart.defaults.color = textColor;
+
+    const GOLD_PALETTE = [
+        '#c9a84c','#2d6a4f','#9b2335','#1a2738','#b7791f',
+        '#4a90d9','#7c3aed','#059669','#dc2626','#d97706'
+    ];
+
+    // ── DONUT CHART ───────────────────────────────────────
+    {% if category_data %}
+    const donutCtx = document.getElementById('donutChart').getContext('2d');
+    new Chart(donutCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ category_data.labels | tojson }},
+            datasets: [{
+                data:            {{ category_data.data | tojson }},
+                backgroundColor: GOLD_PALETTE,
+                borderWidth: 2,
+                borderColor: isDark ? '#1e293b' : '#ffffff',
+                hoverOffset: 6
+            }]
+        },
+        options: {
+            cutout: '68%',
+            plugins: {
+                legend: {
+                    position: 'right',
+                    labels: { padding: 12, font: { size: 11 }, boxWidth: 12 }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: ctx => ` £${ctx.parsed.toFixed(2)}`
+                    }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // ── BAR CHART ─────────────────────────────────────────
+    {% if monthly_data %}
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ monthly_data.labels | tojson }},
+            datasets: [
+                {
+                    label: 'Income',
+                    data: {{ monthly_data.income | tojson }},
+                    backgroundColor: 'rgba(45,106,79,0.8)',
+                    borderRadius: 4
+                },
+                {
+                    label: 'Expenses',
+                    data: {{ monthly_data.expenses | tojson }},
+                    backgroundColor: 'rgba(155,35,53,0.8)',
+                    borderRadius: 4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { position: 'top', labels: { font: { size: 11 } } } },
+            scales: {
+                x: { grid: { color: gridColor } },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { callback: v => '£' + v }
+                }
+            }
+        }
+    });
+    {% endif %}
+
+    // ── LINE CHART ────────────────────────────────────────
+    {% if timeline_data %}
+    const lineCtx = document.getElementById('lineChart').getContext('2d');
+    const gradient = lineCtx.createLinearGradient(0, 0, 0, 200);
+    gradient.addColorStop(0, 'rgba(201,168,76,0.3)');
+    gradient.addColorStop(1, 'rgba(201,168,76,0.0)');
+
+    new Chart(lineCtx, {
+        type: 'line',
+        data: {
+            labels: {{ timeline_data.labels | tojson }},
+            datasets: [{
+                label: 'Spending',
+                data: {{ timeline_data.data | tojson }},
+                borderColor: '#c9a84c',
+                backgroundColor: gradient,
+                borderWidth: 2.5,
+                pointBackgroundColor: '#c9a84c',
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: gridColor } },
+                y: {
+                    grid: { color: gridColor },
+                    ticks: { callback: v => '£' + v }
+                }
+            }
+        }
+    });
+    {% endif %}
+</script>
 {% endblock %}

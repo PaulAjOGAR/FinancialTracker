@@ -4,13 +4,13 @@
 {% block page_title %}{{ form_title }}{% endblock %}
 
 {% block content %}
-<div class="page-header">
+<div class="page-header fade-up">
     <h2>{{ form_title }}</h2>
     <p>{{ form_subtitle }}</p>
 </div>
 
 <div style="max-width:600px;">
-    <div class="card">
+    <div class="card fade-up delay-1">
         <div class="card-header">
             <span class="card-title">{{ form_title }}</span>
         </div>
@@ -24,22 +24,22 @@
 
                 <div class="form-group">
                     <label>Type</label>
-                    <div style="display:flex; gap:12px; margin-top:4px;">
+                    <div style="display:flex; gap:12px; margin-top:6px;">
                         <label class="radio-option" for="type_income"
                                style="display:flex; align-items:center; gap:8px; cursor:pointer;
-                                      padding:10px 20px; border:1.5px solid var(--border);
-                                      border-radius:8px; font-weight:500; font-size:0.9rem;
+                                      padding:12px 20px; border:1.5px solid var(--border);
+                                      border-radius:var(--radius-md); font-weight:500; font-size:0.9rem;
                                       color:var(--text-dark); text-transform:none; letter-spacing:0;
-                                      transition:all 0.2s; flex:1; justify-content:center;">
+                                      transition:var(--transition); flex:1; justify-content:center;">
                             <input type="radio" id="type_income" name="t_type" value="I" style="width:auto; margin:0;" required>
                             💰 Income
                         </label>
                         <label class="radio-option" for="type_expense"
                                style="display:flex; align-items:center; gap:8px; cursor:pointer;
-                                      padding:10px 20px; border:1.5px solid var(--border);
-                                      border-radius:8px; font-weight:500; font-size:0.9rem;
+                                      padding:12px 20px; border:1.5px solid var(--border);
+                                      border-radius:var(--radius-md); font-weight:500; font-size:0.9rem;
                                       color:var(--text-dark); text-transform:none; letter-spacing:0;
-                                      transition:all 0.2s; flex:1; justify-content:center;">
+                                      transition:var(--transition); flex:1; justify-content:center;">
                             <input type="radio" id="type_expense" name="t_type" value="E" style="width:auto; margin:0;">
                             💸 Expense
                         </label>
@@ -60,9 +60,9 @@
                 <div class="form-group">
                     <label>Date</label>
                     <div class="grid-3" style="gap:8px;">
-                        <input type="number" name="day" placeholder="Day" min="1" max="31" required>
-                        <input type="number" name="month" placeholder="Month" min="1" max="12" required>
-                        <input type="number" name="year" placeholder="Year" min="2000" max="2099" required>
+                        <input type="number" name="day"   placeholder="Day"   min="1"    max="31"   required>
+                        <input type="number" name="month" placeholder="Month" min="1"    max="12"   required>
+                        <input type="number" name="year"  placeholder="Year"  min="2000" max="2099" required>
                     </div>
                 </div>
                 {% endif %}
@@ -71,8 +71,8 @@
                 <div class="form-group">
                     <label>Budget Period</label>
                     <div class="grid-2" style="gap:8px;">
-                        <input type="number" name="month" placeholder="Month (1-12)" min="1" max="12" required>
-                        <input type="number" name="year" placeholder="Year (YYYY)" min="2000" max="2099" required>
+                        <input type="number" name="month" placeholder="Month (1-12)"  min="1"    max="12"   required>
+                        <input type="number" name="year"  placeholder="Year (YYYY)"   min="2000" max="2099" required>
                     </div>
                 </div>
                 {% endif %}
@@ -84,7 +84,15 @@
 
                 <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
                     <a href="{{ url_for('index') }}" class="btn btn-outline">Cancel</a>
-                    <button type="submit" class="btn btn-gold" id="submitBtn">{{ submit_label or 'Submit' }}</button>
+                    <button type="submit" class="btn btn-gold" id="submitBtn">
+                        <span id="btnText">{{ submit_label or 'Submit' }}</span>
+                        <span id="btnSpinner" style="display:none;">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" style="animation:spin 0.7s linear infinite;">
+                                <circle cx="8" cy="8" r="6" stroke="rgba(0,0,0,0.2)" stroke-width="2"/>
+                                <path d="M8 2a6 6 0 0 1 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                    </button>
                 </div>
 
             </form>
@@ -95,44 +103,45 @@
 
 {% block extra_js %}
 <script>
-    const radioInputs = document.querySelectorAll('input[type="radio"][name="t_type"]');
-    radioInputs.forEach(radio => {
+    // Radio highlight
+    document.querySelectorAll('input[type="radio"][name="t_type"]').forEach(radio => {
         radio.addEventListener('change', () => {
-            document.querySelectorAll('.radio-option').forEach(label => {
-                label.style.borderColor = 'var(--border)';
-                label.style.background  = '';
-                label.style.color       = 'var(--text-dark)';
+            document.querySelectorAll('.radio-option').forEach(l => {
+                l.style.borderColor = 'var(--border)';
+                l.style.background  = '';
+                l.style.color       = 'var(--text-dark)';
             });
             if (radio.value === 'I') {
-                radio.parentElement.style.borderColor = 'var(--success)';
+                radio.parentElement.style.borderColor = '#2d6a4f';
                 radio.parentElement.style.background  = '#f0fdf4';
-                radio.parentElement.style.color       = 'var(--success)';
+                radio.parentElement.style.color       = '#2d6a4f';
             } else {
-                radio.parentElement.style.borderColor = 'var(--danger)';
+                radio.parentElement.style.borderColor = '#9b2335';
                 radio.parentElement.style.background  = '#fff5f5';
-                radio.parentElement.style.color       = 'var(--danger)';
+                radio.parentElement.style.color       = '#9b2335';
             }
         });
     });
 
-    const amountInput = document.getElementById('amount');
-    amountInput.addEventListener('blur', function() {
+    // Amount formatting
+    document.getElementById('amount').addEventListener('blur', function() {
         if (this.value) this.value = parseFloat(this.value).toFixed(2);
     });
 
+    // Auto-fill today's date
     const today = new Date();
-    const dayInput   = document.querySelector('input[name="day"]');
-    const monthInput = document.querySelector('input[name="month"]');
-    const yearInput  = document.querySelector('input[name="year"]');
-    if (dayInput)   dayInput.value   = today.getDate();
-    if (monthInput) monthInput.value = today.getMonth() + 1;
-    if (yearInput)  yearInput.value  = today.getFullYear();
+    const d = document.querySelector('input[name="day"]');
+    const m = document.querySelector('input[name="month"]');
+    const y = document.querySelector('input[name="year"]');
+    if (d) d.value = today.getDate();
+    if (m) m.value = today.getMonth() + 1;
+    if (y) y.value = today.getFullYear();
 
+    // Submit spinner
     document.getElementById('mainForm').addEventListener('submit', function() {
-        const btn = document.getElementById('submitBtn');
-        btn.disabled = true;
-        btn.textContent = 'Saving...';
-        btn.style.opacity = '0.7';
+        document.getElementById('btnText').textContent = 'Saving...';
+        document.getElementById('btnSpinner').style.display = 'inline';
+        document.getElementById('submitBtn').disabled = true;
     });
 </script>
 {% endblock %}
